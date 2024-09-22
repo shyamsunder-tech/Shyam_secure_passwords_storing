@@ -1,0 +1,103 @@
+<!-- quizzes_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quizzes List</title>
+
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+
+        #quizzes-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #instructions-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="quizzes-container">
+    <h1>Your Quizzes</h1>
+
+    {% if quizzes %}
+        <ul>
+            {% for quiz in quizzes %}
+                <li>
+                    {{ quiz.name }} - Attempts: {{ quiz.attempts }}
+                    <button onclick="showInstructions('{{ quiz.id }}')">Attempt Quiz</button>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't created any quizzes yet.</p>
+    {% endif %}
+</div>
+
+<div id="instructions-container">
+    <h1>Quiz Instructions</h1>
+    <p id="quiz-instructions"></p>
+    <button onclick="startExam('{{ quiz.id }}')">Start Exam</button>
+</div>
+
+<script>
+    function showInstructions(quizId) {
+        // Fetch quiz instructions from the server (you need to implement this endpoint)
+        // Example: /get_instructions?quiz_id={{ quizId }}
+        fetch(`/get_instructions?quiz_id=${quizId}`)
+            .then(response => response.json())
+            .then(data => {
+                const instructionsContainer = document.getElementById('instructions-container');
+                const quizInstructions = document.getElementById('quiz-instructions');
+
+                quizInstructions.innerText = data.instructions;
+                instructionsContainer.style.display = 'block';
+            });
+    }
+
+    function startExam(quizId) {
+        // Redirect to the exam page with the selected quiz ID
+        window.location.href = `/start_exam?quiz_id=${quizId}`;
+    }
+</script>
+
+</body>
+</html>
+          

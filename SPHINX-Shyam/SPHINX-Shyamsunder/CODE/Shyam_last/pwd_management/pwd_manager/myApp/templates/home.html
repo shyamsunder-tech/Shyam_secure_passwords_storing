@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Password Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="{% static '/css/style.css' %}">
+    <script src="{% static '/js/main.js' %}" defer></script>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="brand"><a href=""><i class="fa fa-lock" aria-hidden="true"></i>&nbsp;Password Manager</a></div>
+        
+        <ul>
+            <li><a href="">Home</a></li>
+            {% if request.user.is_anonymous %}
+                <li><a href="javascript:;" onclick="displayModal('login-modal');">Login</a></li>
+                <li><a href="javascript:;" onclick="displayModal('signup-modal');">SignUp</a></li>
+            {% else %}
+                <li><a href="javascript:;" onclick="document.getElementById('logout-btn').click();">Logout</a></li>
+                <form hidden="true" action="." method="POST">
+                    {% csrf_token %}
+                    <input type="submit" id="logout-btn" class="keyboard-input" name="logout">
+                </form>
+                <li><a href="javascript:;" onclick="displayPasswordModal();">View</a></li>
+                <li><a href="javascript:;" onclick="displayModal('add-password-modal');">Add</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>
+
+
+
+    <!--Display messages-->
+    {% if messages %}
+      <div class="messages" style="text-align: center;">
+          {% for message in messages %}
+            <p>
+                {% if message.tags == "error" %}
+                  <i class="fa fa-exclamation" aria-hidden="true"></i>
+                  {% else %}
+                  <i class="fa fa-check" aria-hidden="true"></i>
+                {% endif %}
+                &nbsp;{{message}}
+            </p>
+          {% endfor %}
+      </div>
+    {% endif %}
+
+    <!--Confirm email-->
+      {% if code %}
+        <div style="text-align: center;">
+            <form action="." method="POST" role="form">
+                {% csrf_token %}
+                <h2>Please confirm your email.</h2>
+                <p>Check your email and get the code.</p>
+                <input type="text" name="code" placeholder="enter the 6 digit code ...">
+                <input type="text" hidden="true" name="user" value="{{user.username}}">
+                <input type="submit" value="Confirm" name="confirm">
+            </form>
+        </div>
+      {% endif %}
+
+
+
+    
+{% if loha %}
+<div class="welcome-box" style="text-align:center">
+    <h1>Welcome, {{ user.username }}!</h1>
+
+    {% if url %}
+        <p>URL: {{ url }}</p>
+    {% endif %}
+    {% if mode %}
+        <p>Mode: {{ mode }}</p>
+    {% endif %}
+
+    {% if email %}
+        <p>Email: {{ email }}</p>
+    {% endif %}
+
+    {% if password %}
+        <p>Password: {{ password }}</p>
+    {% endif %}
+</div>
+{% endif %}
+    {% if activator %}
+    <div style="text-align: center;">
+        <form action="." method="POST" role="form">
+            {% csrf_token %}
+            <h2>Please confirm the code to login into {{ url }}.</h2>
+            <p>Check your email and get me the code.</p>
+            <input type="text" name="mode" placeholder="enter the 6 digit code ...">
+            <input type="text" name="passw" placeholder="enter the encrypted pasword ...">
+            
+            <input type="text" hidden="true" name="user" value="{{user.username}}">
+            <input type="submit" value="" name="organo">
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Your existing HTML code -->
+
+    <!--Modals-->
+    <div class="modals-wrapper">
+        <span id="close-modal" title="close"><i class="fa fa-times" aria-hidden="true"></i></span>
+        <!--login modal-->
+        <div class="modal" id="login-modal">
+            <form action="." role="form" method="POST">
+                {% csrf_token %}
+                <h2>Login</h2>
+                <input type="text" name="username" placeholder="username">
+                <input type="password" name="password" placeholder="password">
+                <input type="submit" value="login" name="login-form">
+            </form>
+        </div>
+
+        <!--signup modal-->
+        <div class="modal" id="signup-modal">
+            <form action="." role="form" method="POST">
+                {% csrf_token %}
+                <h2>SignUp</h2>
+                <input type="text" name="username" placeholder="username">
+                <input type="email" name="email" placeholder="email">
+                
+                <input type="password" name="password" placeholder="password">
+                <input type="password" name="password2" placeholder="confirm password">
+
+
+                <input type="submit" value="register" name="signup-form">
+            </form>
+        </div>
+
+        <!--add password modal-->
+        <div class="modal" id="add-password-modal">
+            <form action="." role="form" method="POST">
+                {% csrf_token %}
+                <h2>Add new password</h2>
+                <input type="text" name="url" placeholder="url of website">
+                <input type="text" name="text" placeholder="email">      
+                <input type="text" name="password" placeholder="password">
+                <input type="submit" value="save" name="add-password">
+            </form>
+        </div>
+
+    </div>
+
+    <!--One card-->
+    <div class="modal" id="password-modal">
+
+        {% for password in passwords %}
+        <div class="card">
+            <div class="actions">&nbsp;Actions <i class="fa fa-arrow-down" aria-hidden="true"></i>
+                <a href="javascript:;" onclick="document.getElementById('delete-btn{{password.id}}').click();" class="action-item">Delete</a>
+                <form hidden="true" action="." method="POST">
+                    {% csrf_token %}
+                    <input type="text" hidden="true" name="password-id" value="{{password.id}}">
+                    <input type="submit" id="delete-btn{{password.id}}" name="delete">
+                </form>
+            </div>
+            <img width="50" height="50" src="{{password.logo}}" alt="">
+            
+            <!-- password modal-->
+            <input type="email" name="email" value="{{password.email}}"><i class="fas fa-copy copy" title="copy to clipboard"></i>
+            <input type="text" name="username" value="{{password.password}}"><i class="fas fa-copy copy" title="copy to clipboard"></i>
+          <div class="codem" id="getcode">
+            <form action="." role="form" method="POST">
+                {% csrf_token %}
+                <input type="submit" value="Get the Details" name="sentil">
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Add this script in your HTML -->
+    <script>
+        function displayPasswordModal() {
+            document.getElementById('password-modal').style.display = 'block';
+        }
+    </script>
+    </body>
+<!-- <footer>
+    <header>
+        <h1>Password Manager</h1>
+        <p>Securely manage and organize your passwords with ease.</p>
+    </header>
+
+    <section>
+        <h2>Why Use a Password Manager?</h2>
+        <p>Managing multiple passwords can be challenging. A password manager helps you:</p>
+        <ul>
+            <li>Generate strong, unique passwords for each account</li>
+            <li>Store and organize passwords in a secure vault</li>
+            <li>Access your passwords across devices</li>
+            <li>Enhance security with features like two-factor authentication</li>
+        </ul>
+
+        <h2>Key Features</h2>
+        <ul>
+            <li>Secure password storage</li>
+            <li>Password generation tool</li>
+            <li>Intuitive user interface</li>
+            <li>Two-factor authentication support</li>
+            <li>Browser integration for easy logins</li>
+        </ul>
+    </section>
+</footer> -->
+
+</html>
